@@ -9,9 +9,9 @@
 <link rel="icon" href="./icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="./icon-180.png">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="stylesheet" href="./style.css">
+<link rel="stylesheet" href="./style.css?v=2">
 <script defer src="./catalog.js"></script>
-<script defer src="./sky.js"></script>
+<script defer src="./sky.js?v=2"></script>
 </head>
 <body>
 <main class="map" id="sky-view" aria-label="觀星台即時星圖">
@@ -24,6 +24,7 @@
   <div class="zoom" aria-label="縮放星圖">
     <button type="button" id="zoom-in" aria-label="放大">＋</button>
     <button type="button" id="zoom-out" aria-label="縮小">−</button>
+    <button type="button" id="zoom-reset" aria-label="重設縮放" title="回到預設視野" disabled>重設</button>
   </div>
   <div class="map-bottom">
     <p id="status" class="status" role="status"></p>

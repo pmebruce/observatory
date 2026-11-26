@@ -1,6 +1,7 @@
 'use strict';
 
 const R = Math.PI / 180;
+const defaultFov = 66;
 const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
 const wrap = n => (n % 360 + 360) % 360;
 const relativeAngle = n => wrap(n + 180) - 180;
@@ -88,7 +89,7 @@ const aliases = {Ari:'白羊座 牧羊座',Aqr:'水瓶座',Sgr:'射手座',UMa:'
 const searchable = [...constellations, ...namedStars];
 
 const state = {
-  lat:24.82, lon:121.01, az:180, alt:42, fov:66, lines:true, tracking:false,
+  lat:24.82, lon:121.01, az:180, alt:42, fov:defaultFov, lines:true, tracking:false,
   waiting:false, offset:0, pointed:null, selected:null, dirty:true, width:0, height:0,
   ratio:1, hits:[], lastSky:0, lastFrame:0
 };
@@ -271,10 +272,11 @@ function setView(az,alt) {
   state.dirty=true;
 }
 
-function changeZoom(delta) {
-  state.fov=clamp(state.fov+delta,22,95);
+function setZoom(fov) {
+  state.fov=clamp(fov,22,95);
   $('zoom-in').disabled=state.fov===22;
   $('zoom-out').disabled=state.fov===95;
+  $('zoom-reset').disabled=state.fov===defaultFov;
   state.dirty=true;
 }
 
@@ -463,7 +465,34 @@ canvas.addEventListener('pointerup',e=>{
 });
 canvas.addEventListener('pointercancel',()=>{drag=null;});
 canvas.addEventListener('lostpointercapture',()=>{drag=null;});
-canvas.addEventListener('wheel',e=>{e.preventDefault();changeZoom(e.deltaY>0?6:-6);},{passive:false});
+const finePointer=matchMedia('(any-pointer: fine)');
+canvas.addEventListener('wheel',event=>{
+  if (!finePointer.matches || event.ctrlKey || !event.deltaY) return;
+  event.preventDefault();
+  setZoom(state.fov+(event.deltaY>0?6:-6));
+},{passive:false});
+
+const zoomControls=$('zoom-in').parentElement;
+let zoomTouch=null;
+function trackZoomSwipe(event) {
+  if (zoomTouch?.id!==event.pointerId) return;
+  zoomTouch.moved ||= Math.hypot(event.clientX-zoomTouch.x,event.clientY-zoomTouch.y)>8;
+}
+zoomControls.addEventListener('pointerdown',event=>{
+  zoomTouch=event.pointerType==='touch'
+    ? {id:event.pointerId,x:event.clientX,y:event.clientY,moved:false}
+    : null;
+});
+zoomControls.addEventListener('pointermove',trackZoomSwipe);
+zoomControls.addEventListener('pointerup',trackZoomSwipe);
+zoomControls.addEventListener('pointercancel',()=>{zoomTouch=null;});
+zoomControls.addEventListener('click',event=>{
+  if (event.detail>0 && zoomTouch?.moved) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  zoomTouch=null;
+},{capture:true});
 
 $('sensor').addEventListener('click',toggleTracking);
 $('tools').addEventListener('click',()=>toolsDialog.showModal());
@@ -478,8 +507,9 @@ $('locate').addEventListener('click',locate);
 $('query').addEventListener('input',updateResults);
 $('clear').addEventListener('click',()=>select(null));
 $('center').addEventListener('click',centerSelection);
-$('zoom-in').addEventListener('click',()=>changeZoom(-10));
-$('zoom-out').addEventListener('click',()=>changeZoom(10));
+$('zoom-in').addEventListener('click',()=>setZoom(state.fov-10));
+$('zoom-out').addEventListener('click',()=>setZoom(state.fov+10));
+$('zoom-reset').addEventListener('click',()=>setZoom(defaultFov));
 $('lines').addEventListener('click',()=>{
   state.lines=!state.lines;
   $('lines').setAttribute('aria-pressed',String(state.lines));
