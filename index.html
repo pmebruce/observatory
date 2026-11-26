@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080e1e">
+<meta name="description" content="把手機朝向天空，用即時星圖找到星座與亮星。">
+<title>觀星台</title>
+<link rel="icon" href="./icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="stylesheet" href="./style.css">
+<script defer src="./catalog.js"></script>
+<script defer src="./sky.js"></script>
+</head>
+<body>
+<main class="map" id="sky-view" aria-label="觀星台即時星圖">
+  <canvas id="map" aria-label="可拖曳的即時星圖">使用找星工具與方位按鈕探索星空。</canvas>
+  <div class="map-top">
+    <div class="readout"><b id="direction">南</b> <span id="bearing">180°</span><span class="readout-divider"></span><span id="elevation">仰角 42°</span></div>
+    <span id="clock" class="readout"></span>
+  </div>
+  <div class="cross" aria-hidden="true"></div>
+  <div class="zoom" aria-label="縮放星圖">
+    <button type="button" id="zoom-in" aria-label="放大">＋</button>
+    <button type="button" id="zoom-out" aria-label="縮小">−</button>
+  </div>
+  <div class="map-bottom">
+    <p id="status" class="status" role="status"></p>
+    <div class="compass" aria-label="切換星圖方向">
+      <button type="button" data-az="0">北</button><button type="button" data-az="90">東</button><button type="button" data-az="180">南</button><button type="button" data-az="270">西</button>
+    </div>
+    <div class="actions">
+      <button type="button" id="sensor" aria-pressed="false" aria-label="啟用手機指向"><img src="./icon-192.png" alt="" width="20" height="20"><span>手機指向</span></button>
+      <button type="button" id="tools" aria-haspopup="dialog" aria-controls="sky-tools">找星與設定</button>
+    </div>
+  </div>
+  <button type="button" id="quiet" aria-pressed="false">純星空</button>
+</main>
+<dialog class="panel" id="sky-tools" aria-labelledby="tools-title">
+  <div class="panel-header">
+    <h1 id="tools-title">觀星台</h1>
+    <form method="dialog"><button type="submit" class="close" aria-label="關閉找星工具" autofocus>×</button></form>
+  </div>
+  <div class="panel-content">
+    <div class="finder">
+      <label for="query">找星座或亮星</label>
+      <input id="query" type="search" placeholder="例如 獵戶座、天狼星" autocomplete="off">
+      <p id="result-label">地平線上的亮星</p>
+      <ul id="results"></ul>
+    </div>
+    <div id="selected" class="selected" hidden>
+      <div><h2 id="selected-name"></h2><button id="clear" aria-label="取消選取" type="button">×</button></div>
+      <p id="selected-detail"></p>
+      <button id="center" type="button">在星圖置中</button>
+    </div>
+    <div class="settings" aria-label="星圖設定">
+      <button type="button" id="locate" class="location" title="使用目前位置">定位 · <span id="place">竹北預設位置</span></button>
+      <button id="lines" type="button" aria-pressed="true">星座連線</button>
+    </div>
+    <div id="correction" hidden>
+      <span>方位微調 <output id="offset">0°</output></span>
+      <button type="button" id="offset-down" aria-label="方位往左修正五度">−5°</button>
+      <button type="button" id="offset-up" aria-label="方位往右修正五度">＋5°</button>
+    </div>
+    <p id="panel-status" class="panel-status" role="status"></p>
+    <details><summary>星圖資料</summary><p>星表與星座連線來自 <a href="https://github.com/ofrohn/d3-celestial">D3-Celestial</a>（<a href="./catalog-license.txt">授權</a>）。星圖按裝置時間與觀測位置計算。定位只用於本機星圖計算。</p></details>
+  </div>
+</dialog>
+</body>
+</html>
